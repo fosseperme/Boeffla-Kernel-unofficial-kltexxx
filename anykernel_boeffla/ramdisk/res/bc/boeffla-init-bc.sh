@@ -3,7 +3,7 @@
 # ************************************
 # BC-based initialization
 #
-# SM-G900F Samsung Android 6 version
+# SM-G900F Lineage14 version
 #
 # V0.1
 # ************************************
@@ -28,6 +28,7 @@
 	BUSYBOX_ENABLER="/data/.boeffla/enable-busybox"
 	FRANDOM_ENABLER="/data/.boeffla/enable-frandom"
 	PERMISSIVE_ENABLER="/data/.boeffla/enable-permissive"
+	DISABLE_DEFAULT_ZRAM="/data/.boeffla/disable-default-zram"
 	DOZE_DISABLER="/data/.boeffla/disable-doze"
 
 # If not yet existing, create a boeffla-kernel-data folder on sdcard 
@@ -57,33 +58,24 @@
 	/sbin/busybox grep ro.build.version /system/build.prop >> $BOEFFLA_LOGFILE
 	echo "=========================" >> $BOEFFLA_LOGFILE
 
-# set busybox selinux labels
-	mount -o rw,remount rootfs /
-	chcon u:object_r:toolbox_exec:s0 /sbin/busybox
-	mount -o ro,remount rootfs /
-
-# Install busybox applet symlinks to /system/xbin if enabled,
-# otherwise only install mount/umount/top symlinks
-	mount -o remount,rw -t ext4 $SYSTEM_DEVICE /system
-	if [ -f $BUSYBOX_ENABLER ]; then
-		/sbin/busybox --install -s /system/xbin
-		echo $(date) "Busybox applet symlinks installed to /system/xbin" >> $BOEFFLA_LOGFILE
-	else
-		/sbin/busybox ln -s /sbin/busybox /system/xbin/mount
-		/sbin/busybox ln -s /sbin/busybox /system/xbin/umount
-		/sbin/busybox ln -s /sbin/busybox /system/xbin/top
-		echo $(date) "Mount/umount/top applet symlinks installed to /system/xbin" >> $BOEFFLA_LOGFILE
-	
-	fi
-	/sbin/busybox sync
-	mount -o remount,ro -t ext4 $SYSTEM_DEVICE /system
-		
 # remove any obsolete Boeffla-Config V2 startconfig done file
 	/sbin/busybox rm -f $BOEFFLA_STARTCONFIG_DONE
 
 # remove not used configuration files
 	/sbin/busybox rm -f $BUSYBOX_ENABLER
 	/sbin/busybox rm -f $FRANDOM_ENABLER
+
+# execute the early startconfig script, if it exists
+	if [ -f $BOEFFLA_STARTCONFIG_EARLY ]; then
+	. $BOEFFLA_STARTCONFIG_EARLY
+	fi
+
+# disable default zRam if configured
+	if [ -f $DISABLE_DEFAULT_ZRAM ]; then
+		busybox swapoff /dev/block/zram0
+		echo "1" > /sys/block/zram0/reset
+		busybox sync
+	fi
 
 # Apply Boeffla-Kernel default settings 1
 
@@ -94,24 +86,25 @@
 	mount -o remount,commit=20,noatime $DATA_DEVICE /data
 	/sbin/busybox sync
 
-	# Initialize swappiness to 130 for vnswap
-	echo "130" > /proc/sys/vm/swappiness
-
 	echo $(date) Boeffla-Kernel default settings 1 applied >> $BOEFFLA_LOGFILE
 
-# init.d support
+# init.d support (enabler only to be considered for Lineage based roms)
 # (zipalign scripts will not be executed as only exception)
-	echo $(date) Execute init.d scripts start >> $BOEFFLA_LOGFILE
-	if cd /system/etc/init.d >/dev/null 2>&1 ; then
-		for file in * ; do
-			if ! cat "$file" >/dev/null 2>&1 ; then continue ; fi
-			if [[ "$file" == *zipalign* ]]; then continue ; fi
-			echo $(date) init.d file $file started >> $BOEFFLA_LOGFILE
-			/system/bin/sh "$file"
-			echo $(date) init.d file $file executed >> $BOEFFLA_LOGFILE
-		done
+	if [ -f $INITD_ENABLER ] ; then
+		echo $(date) Execute init.d scripts start >> $BOEFFLA_LOGFILE
+		if cd /system/etc/init.d >/dev/null 2>&1 ; then
+			for file in * ; do
+				if ! cat "$file" >/dev/null 2>&1 ; then continue ; fi
+				if [[ "$file" == *zipalign* ]]; then continue ; fi
+				echo $(date) init.d file $file started >> $BOEFFLA_LOGFILE
+				/system/bin/sh "$file"
+				echo $(date) init.d file $file executed >> $BOEFFLA_LOGFILE
+			done
+		fi
+		echo $(date) Finished executing init.d scripts >> $BOEFFLA_LOGFILE
+	else
+		echo $(date) init.d script handling by kernel disabled >> $BOEFFLA_LOGFILE
 	fi
-	echo $(date) Finished executing init.d scripts >> $BOEFFLA_LOGFILE
 
 # Wait for some time to ensure rom is fully initialized
 	echo $(date) Waiting a few more seconds... >> $BOEFFLA_LOGFILE
@@ -155,9 +148,6 @@
 		echo 1 > /sys/kernel/dyn_fsync/Dyn_fsync_active
 		/sbin/busybox sync
 
-		# If not, apply default Boeffla-Kernel vnswap of 1000 MB
-		/res/bc/bccontroller.sh apply_zram 1 1 1048576000
-
 		echo $(date) "No startup configuration found, enable all default settings"  >> $BOEFFLA_LOGFILE
 	fi
 
@@ -196,14 +186,6 @@
 
 		echo $(date) Recovery reset zip copied >> $BOEFFLA_LOGFILE
 	fi
-
-# Disable knox
-	pm disable com.sec.enterprise.knox.cloudmdm.smdms
-	pm disable com.sec.knox.bridge
-	pm disable com.sec.enterprise.knox.attestation
-	pm disable com.sec.knox.knoxsetupwizardclient
-	pm disable com.samsung.knox.rcp.components	
-	pm disable com.samsung.android.securitylogagent
 
 # disable doze if configured
 	if [ -f $DOZE_DISABLER ]; then

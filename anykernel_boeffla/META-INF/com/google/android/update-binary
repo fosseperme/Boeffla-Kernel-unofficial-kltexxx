@@ -4,7 +4,7 @@
 #
 # Original and credits: osm0sis @ xda-developers
 #
-# Modified by Lord Boeffla, 30.06.2016
+# Modified by Lord Boeffla & sunilpaulmathew @ xda-developers.com
 
 OUTFD=/proc/self/fd/$2;
 ZIP="$3";
@@ -73,27 +73,32 @@ fi;
 chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
 bb=/tmp/anykernel/tools/busybox;
 
-ui_print "###kernelname###";
+ui_print "Boeffla-Kernel-kltexxx-unofficial";
 ui_print " ";
-ui_print "###copyright###";
+ui_print "(c) sunilpaulmathew@xda-developers.com";
 ui_print " ";
 
-mount -o ro /system;
+umount /system;
+mount -o ro -t auto /system;
 mount /data;
+test -f /system/system/build.prop && root=/system;
 
 # remove kernel survival script as it is useless with anykernel
-mount -o remount,rw /system;
-rm /system/addon.d/97-boeffla-kernel.sh
-mount -o remount,ro /system;
+mount -o remount,rw -t auto /system;
+rm $root/system/addon.d/97-boeffla-kernel.sh
+mount -o remount,ro -t auto /system;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
 	ui_print "* Checking device compatibility...";
 	ui_print "  - Detected product.device: $(getprop ro.product.device)";
 	ui_print "  - Detected build.product : $(getprop ro.build.product)";
+	ui_print "  - Detected display.series: $(getprop ro.display.series)";
 
 	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
 		testname="$(file_getprop /tmp/anykernel/anykernel.sh device.name$i)";
-		if [ "$(getprop ro.product.device)" == "$testname" -o "$(getprop ro.build.product)" == "$testname" ]; then
+		if [ "$(getprop ro.product.device)" == "$testname" -o \
+			"$(getprop ro.build.product)" == "$testname" -o \
+			"$(getprop ro.display.series)" == "$testname" ]; then
 			match=1;
 		fi;
 	done;
@@ -111,12 +116,12 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.initd)" == 1 ]; then
 	ui_print "* Creating init.d...";
 	ui_print " ";
 
-	mount -o remount,rw /system;
-	if [ ! -d /system/etc/init.d ]; then
-	    mkdir -p /system/etc/init.d;
+	mount -o remount,rw -t auto /system;
+	if [ ! -d $root/system/etc/init.d ]; then
+	    mkdir $root/system/etc/init.d;
 	fi;
-	set_perm_recursive 0 0 0755 0755 /system/etc/init.d;
-	mount -o remount,ro /system;
+	set_perm_recursive 0 0 0755 0755 $root/system/etc/init.d;
+	mount -o remount,ro -t auto /system;
 fi;
 
 ui_print "* Installing kernel...";
@@ -140,14 +145,14 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
 	ui_print "* Copying modules...";
 	ui_print " ";
 
-	mount -o remount,rw /system;
-	if [ ! -d /system/lib/modules ]; then
-	    mkdir -p /system/lib/modules;
+	mount -o remount,rw -t auto /system;
+	if [ ! -d $root/system/lib/modules ]; then
+	    mkdir -p $root/system/lib/modules;
 	fi;
-	rm -rf /system/lib/modules/*;
-	cp -rf /tmp/anykernel/modules/* /system/lib/modules/;
-	set_perm_recursive 0 0 0755 0644 /system/lib/modules;
-	mount -o remount,ro /system;
+	rm -rf $root/system/lib/modules/*;
+	cp -rf /tmp/anykernel/modules/* $root/system/lib/modules/;
+	set_perm_recursive 0 0 0755 0644 $root/system/lib/modules;
+	mount -o remount,ro -t auto /system;
 fi;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then

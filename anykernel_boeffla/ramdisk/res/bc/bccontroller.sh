@@ -3,7 +3,7 @@
 # Boeffla-Config controller interface
 #
 # *************************************
-# SM-G900F Samsung Android 6 version
+# SM-G900F Lineage14 version
 #
 # V0.1
 # *************************************
@@ -13,16 +13,16 @@
 # ********************************
 
 # kernel specification (hardware; type; target; url)
-KERNEL_SPECS="g900f;samsung;mm60;http://kernel.boeffla.de/sgs5/boeffla-kernel/;boeffla-kernel-#VERSION#-Samsung-g900f-anykernel.recovery.zip"
+KERNEL_SPECS="g900f;cm;cm14.0;http://kernel.boeffla.de/sgs5/boeffla-kernel-cm/;boeffla-kernel-#VERSION#-Lineage14.1-g900f-anykernel.recovery.zip"
 
 # kernel features 
 # (1=enable-busybox,2=enable-frandom,3=wipe-cache,4=disable-zram-control)
 # (5=enable-default-zram-control,6=enable-selinux-switch, 7=enable-selinux-control)
 # (8=no-hotplugging,9=enable-doze-control)
-KERNEL_FEATURES="-1-3-6-7-9-"
+KERNEL_FEATURES="-3-4-5-6-7-9-"
 
 # path to kernel libraries
-LIBPATH="/lib/modules"
+LIBPATH="/system/lib/modules"
 
 # block devices
 SYSTEM_DEVICE="/dev/block/platform/msm_sdcc.1/by-name/system"
@@ -365,9 +365,7 @@ fi
 
 if [ "param_zram" == "$1" ]; then
 	# zRam size min/max/steps
-	echo "104857600;1572864000;20971520;"
-	# swappiness max value
-	echo "200"
+	echo "104857600;1572864000;20971520"
 	exit 0
 fi
 
@@ -665,7 +663,6 @@ if [ "apply_cpu_hotplug_profile" == "$1" ]; then
 	exit 0;
 fi
 
-
 if [ "apply_governor_profile" == "$1" ]; then
 
 	if [ "ondemand - standard" == "$2" ]; then
@@ -739,7 +736,6 @@ if [ "apply_governor_profile" == "$1" ]; then
 	fi
 
 	if [ "interactive - standard" == "$2" ]; then
-		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 		echo "20000 1400000:40000 1700000:20000" > /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 
 		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/boost 
 		echo "" > /sys/devices/system/cpu/cpufreq/interactive/boostpulse 
@@ -755,14 +751,12 @@ if [ "apply_governor_profile" == "$1" ]; then
 		echo "20000" > /sys/devices/system/cpu/cpufreq/interactive/timer_slack 
 		echo "1190400" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_freq 
 		echo "50" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_load 
-		echo "1" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 
 		busybox sleep 0.5s
 		busybox sync
 	fi
 	
 	if [ "interactive - battery" == "$2" ]; then
-		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 		echo "20000 1400000:40000 1700000:20000" > /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 
 		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/boost 
 		echo "" > /sys/devices/system/cpu/cpufreq/interactive/boostpulse 
@@ -778,14 +772,12 @@ if [ "apply_governor_profile" == "$1" ]; then
 		echo "20000" > /sys/devices/system/cpu/cpufreq/interactive/timer_slack 
 		echo "1190400" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_freq 
 		echo "50" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_load 
-		echo "1" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 
 		busybox sleep 0.5s
 		busybox sync
 	fi
 
 	if [ "interactive - battery extreme" == "$2" ]; then
-		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 		echo "20000 1400000:40000 1700000:20000" > /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 
 		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/boost 
 		echo "" > /sys/devices/system/cpu/cpufreq/interactive/boostpulse 
@@ -801,14 +793,12 @@ if [ "apply_governor_profile" == "$1" ]; then
 		echo "20000" > /sys/devices/system/cpu/cpufreq/interactive/timer_slack 
 		echo "1190400" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_freq 
 		echo "50" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_load 
-		echo "1" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 
 		busybox sleep 0.5s
 		busybox sync
 	fi
 
 	if [ "interactive - performance" == "$2" ]; then
-		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 		echo "20000 1400000:40000 1700000:20000" > /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 
 		echo "0" > /sys/devices/system/cpu/cpufreq/interactive/boost 
 		echo "" > /sys/devices/system/cpu/cpufreq/interactive/boostpulse 
@@ -824,7 +814,6 @@ if [ "apply_governor_profile" == "$1" ]; then
 		echo "20000" > /sys/devices/system/cpu/cpufreq/interactive/timer_slack 
 		echo "1190400" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_freq 
 		echo "50" > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_load 
-		echo "1" > /sys/devices/system/cpu/cpufreq/interactive/bk_locked 
 
 		busybox sleep 0.5s
 		busybox sync
@@ -1142,45 +1131,46 @@ fi
 if [ "apply_ext4_tweaks" == "$1" ]; then
 	if [ "1" == "$2" ]; then
 		busybox sync
-		mount -o remount,commit=20,noatime $CACHE_DEVICE /cache
+		busybox mount -o remount,commit=20,noatime $CACHE_DEVICE /cache
 		busybox sync
-		mount -o remount,commit=20,noatime $DATA_DEVICE /data
+		busybox mount -o remount,commit=20,noatime $DATA_DEVICE /data
 		busybox sync
 	fi
 
 	if [ "0" == "$2" ]; then
 		busybox sync
-		mount -o remount,commit=0,noatime $CACHE_DEVICE /cache
+		busybox mount -o remount,commit=0,noatime $CACHE_DEVICE /cache
 		busybox sync
-		mount -o remount,commit=0,noatime $DATA_DEVICE /data
+		busybox mount -o remount,commit=0,noatime $DATA_DEVICE /data
 		busybox sync
 	fi
 	exit 0
 fi
 
-if [ "apply_zram" == "$1" ]; then
 
-	busybox swapoff /dev/block/vnswap0
-	busybox sync
-	busybox sleep 0.2s
-	
-	if [ "1" == "$2" ]; then
-		echo "$4" > /sys/block/vnswap0/disksize
-		busybox mkswap /dev/block/vnswap0
-		busybox sleep 0.2s
-		busybox sync
-		busybox swapon -p -1 /dev/block/vnswap0
-		busybox sleep 0.1s
-		busybox sync
-		echo "130" > /proc/sys/vm/swappiness
-	fi
-
-	exit 0
-fi
+#if [ "apply_zram" == "$1" ]; then
+#
+#	busybox swapoff /dev/block/vnswap0
+#	busybox sync
+#	busybox sleep 0.2s
+#
+#	if [ "1" == "$2" ]; then
+#		echo "$4" > /sys/block/vnswap0/disksize
+#		busybox mkswap /dev/block/vnswap0
+#		busybox sleep 0.2s
+#		busybox sync
+#		busybox swapon -p 2 /dev/block/vnswap0
+#		busybox sleep 0.1s
+#		busybox sync
+#		echo "130" > /proc/sys/vm/swappiness
+#	fi
+#
+#	exit 0
+#fi
 
 if [ "apply_cifs" == "$1" ]; then
 	if [ "1" == "$2" ]; then
-		insmod $LIBPATH/cifs.ko
+		busybox insmod $LIBPATH/cifs.ko
 	fi
 
 	if [ "0" == "$2" ]; then
@@ -1191,10 +1181,10 @@ fi
 
 if [ "apply_nfs" == "$1" ]; then
 	if [ "1" == "$2" ]; then
-		insmod $LIBPATH/sunrpc.ko
-		insmod $LIBPATH/auth_rpcgss.ko
-		insmod $LIBPATH/lockd.ko
-		insmod $LIBPATH/nfs.ko
+		busybox insmod $LIBPATH/sunrpc.ko
+		busybox insmod $LIBPATH/auth_rpcgss.ko
+		busybox insmod $LIBPATH/lockd.ko
+		busybox insmod $LIBPATH/nfs.ko
 	fi
 
 	if [ "0" == "$2" ]; then
@@ -1208,7 +1198,7 @@ fi
 
 if [ "apply_xbox" == "$1" ]; then
 	if [ "1" == "$2" ]; then
-		insmod $LIBPATH/xpad.ko
+		busybox insmod $LIBPATH/xpad.ko
 	fi
 
 	if [ "0" == "$2" ]; then
@@ -1219,8 +1209,8 @@ fi
 
 if [ "apply_exfat" == "$1" ]; then
 	if [ "1" == "$2" ]; then
-		insmod $LIBPATH/exfat_core.ko
-		insmod $LIBPATH/exfat_fs.ko
+		busybox insmod $LIBPATH/exfat_core.ko
+		busybox insmod $LIBPATH/exfat_fs.ko
 	fi
 
 	if [ "0" == "$2" ]; then
@@ -1232,7 +1222,7 @@ fi
 
 if [ "apply_usb_ethernet" == "$1" ]; then
 	if [ "1" == "$2" ]; then
-		insmod $LIBPATH/asix.ko
+		busybox insmod $LIBPATH/asix.ko
 		netcfg eth0 up
 		dhcpcd eth0
 		DNS=`getprop net.eth0.dns1`
@@ -1249,7 +1239,7 @@ fi
 
 if [ "apply_ntfs" == "$1" ]; then
 	if [ "1" == "$2" ]; then
-		insmod $LIBPATH/ntfs.ko
+		busybox insmod $LIBPATH/ntfs.ko
 	fi
 
 	if [ "0" == "$2" ]; then
@@ -1260,14 +1250,22 @@ fi
 
 if [ "apply_ums" == "$1" ]; then
 	if [ "1" == "$2" ]; then
+		echo "1" > /sys/devices/msm_dwc3/f9200000.dwc3/gadget/lun0/nofua
+		echo "0" > /sys/devices/msm_dwc3/f9200000.dwc3/gadget/lun0/ro
 		echo "0" > /sys/devices/msm_dwc3/f9200000.dwc3/gadget/lun0/cdrom
-		/system/bin/setprop persist.sys.usb.config mass_storage,adb
 		echo "/dev/block/mmcblk1p1" > /sys/devices/msm_dwc3/f9200000.dwc3/gadget/lun0/file
+		echo 0 > /sys/class/android_usb/android0/enable;
+		echo mass_storage > /sys/class/android_usb/android0/functions
+		echo 1 > /sys/class/android_usb/android0/enable
+		setprop sys.usb.config mass_storage,adb
 	fi
 
 	if [ "0" == "$2" ]; then
 		echo "" > /sys/devices/msm_dwc3/f9200000.dwc3/gadget/lun0/file
-		/system/bin/setprop persist.sys.usb.config mtp,adb
+		echo 0 > /sys/class/android_usb/android0/enable;
+		echo mtp > /sys/class/android_usb/android0/functions
+		echo 1 > /sys/class/android_usb/android0/enable
+		setprop sys.usb.config mtp,adb
 	fi
 	exit 0
 fi
@@ -1475,48 +1473,6 @@ if [ "action_debug_info_file" == "$1" ]; then
 	exit 0
 fi
 
-if [ "action_clean_initd" == "$1" ]; then
-	busybox tar cvz -f $2 /system/etc/init.d
-	mount -o remount,rw -t ext4 $SYSTEM_DEVICE /system
-	busybox rm /system/etc/init.d/*
-	busybox sync
-	mount -o remount,ro -t ext4 $SYSTEM_DEVICE /system
-	exit 0
-fi
-
-if [ "action_fix_permissions" == "$1" ]; then
-	mount -o remount,rw -t ext4 $SYSTEM_DEVICE /system
-
-	# User apps
-	busybox chmod 644 /data/app/*.apk
-	busybox chown 1000:1000 /data/app/*.apk
-	# System apps
-	busybox chmod 644 /system/app/*.apk
-	busybox chown 0:0 /system/app/*.apk
-	# System framework
-	busybox chmod 644 /system/framework/*.apk
-	busybox chown 0:0 /system/framework/*.apk
-	busybox chmod 644 /system/framework/*.jar
-	busybox chown 0:0 /system/framework/*.jar
-
-	mount -o remount,ro -t ext4 $SYSTEM_DEVICE /system
-	busybox sync
-	exit 0
-fi
-
-if [ "action_fstrim" == "$1" ]; then
-	echo -e "Trim /data"
-	/sbin/busybox fstrim -v /data
-	echo -e ""
-	echo -e "Trim /cache"
-	/sbin/busybox fstrim -v /cache
-	echo -e ""
-	echo -e "Trim /system"
-	/sbin/busybox fstrim -v /system
-	echo -e ""
-	busybox sync
-	exit 0
-fi
 
 if [ "flash_recovery" == "$1" ]; then
 	setenforce 0
