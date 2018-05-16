@@ -3548,7 +3548,7 @@ config MSM_DEVFREQ_CPUBW
 
 config CPU_VOLTAGE_TABLE
 	bool "Enable CPU Voltage Table via sysfs"
-	default n
+	default y
 	help
 	  DTS based kernel User Voltage Control
 
@@ -4925,6 +4925,7 @@ config TERT_MI2S_ENABLE
 config SEC_SMART_MGR_RUNQUEUE_AVG
 	default n
 	bool "Samsung added for read current run queue"
+	default y
 	help
 	  Support for Smart MGR function.
 	  
