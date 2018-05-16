@@ -24,12 +24,10 @@
 *.order
 modules.builtin
 *.elf
-*.gz
 *.bz2
 *.lzma
 *.xz
 *.lzo
-*.patch
 *.gcno
 
 #
@@ -43,6 +41,8 @@ modules.builtin
 /System.map
 /Module.markers
 /Module.symvers
+/output_*
+/release_boeffla
 
 #
 # Debian directory (make deb-pkg)
